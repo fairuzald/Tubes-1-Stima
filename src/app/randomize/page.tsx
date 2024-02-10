@@ -1,7 +1,7 @@
 "use client";
 import { makeApiRequest } from "@/lib/helper";
 import Link from "next/link";
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 
 interface Matrix {
   [key: number]: string[];
@@ -48,17 +48,19 @@ export default function Home() {
   const [matrix, setMatrix] = useState<Matrix>({});
   const [buffer, setBuffer] = useState<number>(0);
   const [data, setData] = useState<any>([]);
+  const [col, setCol] = useState<number>(0);
+  const [row, setRow] = useState<number>(0);
 
-  // console.log(
-  //   "targets",
-  //   targets,
-  //   "matrix",
-  //   matrix,
-  //   "buffer",
-  //   buffer,
-  //   "data",
-  //   data
-  // );
+  console.log(
+    "targets",
+    targets,
+    "matrix",
+    matrix,
+    "buffer",
+    buffer,
+    "data",
+    data
+  );
   const formatSolution = (data: Solution): string => {
     const formattedData: string[] = [];
 
@@ -101,89 +103,52 @@ export default function Home() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+  const randomizeMatrix = (rowCount: number, colCount: number): Matrix => {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const matrix: Matrix = {};
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    setData([]);
-
-    if (selectedFile) {
-      const fileContent = await readFileContent(selectedFile);
-      // console.log("fileContent", fileContent);
-      const { buffer, rowCount, colCount, parsedTargets, parsedMatrix } =
-        parseFileContent(fileContent);
-
-      setBuffer(buffer);
-      setTargets(parsedTargets);
-      setMatrix(parsedMatrix);
-    }
-  };
-
-  const readFileContent = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          resolve(event.target.result as string);
-        } else {
-          reject(new Error("Error reading file."));
-        }
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsText(file);
-    });
-  };
-
-  const parseFileContent = (content: string): ParsedFile => {
-    const lines = content.split("\n");
-    const parsedTargets: Target[] = [];
-    const parsedMatrix: Matrix = {};
-    let matrixRowIndex = 0;
-    let rowCount = 0;
-    let colCount = 0;
-    let buffer = 0;
-    let numberOfTargets = 0; // Declare numberOfTargets here
-
-    // Parse the content line by line
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-
-      if (index === 0) {
-        // Parse buffer size
-        buffer = parseInt(trimmedLine, 10);
-      } else if (index === 1) {
-        // Parse row and column count
-        const [rows, cols] = trimmedLine
-          .split(" ")
-          .map((value) => parseInt(value, 10));
-        rowCount = rows;
-        colCount = cols;
-      } else if (index >= 2 && index < 2 + rowCount) {
-        // Parse matrix values
-        const values = trimmedLine.split(" ");
-        const matrixRow = values.map((value) => value);
-        parsedMatrix[matrixRowIndex++] = matrixRow;
-      } else if (index === 2 + rowCount) {
-        // Parse the number of targets
-        numberOfTargets = parseInt(trimmedLine, 10);
-      } else if (
-        index > 2 + rowCount &&
-        index <= 2 + rowCount + numberOfTargets * 2
-      ) {
-        // Parse target values (sequence and points)
-        if (index % 2 === 1) {
-          // Odd index: sequence
-          const sequence = trimmedLine.split(" ").join("");
-          const pointsIndex = index + 1;
-          const points = parseInt(lines[pointsIndex], 10);
-          parsedTargets.push({ sequence: sequence.split(""), points });
-        }
+    for (let i = 0; i < rowCount; i++) {
+      const row: string[] = [];
+      for (let j = 0; j < colCount; j++) {
+        const randomCharIndex1 = Math.floor(Math.random() * characters.length);
+        const randomCharIndex2 = Math.floor(Math.random() * characters.length);
+        const randomChar1 = characters.charAt(randomCharIndex1);
+        const randomChar2 = characters.charAt(randomCharIndex2);
+        row.push(randomChar1 + randomChar2);
       }
-    });
-
-    return { buffer, rowCount, colCount, parsedTargets, parsedMatrix };
+      matrix[i] = row;
+    }
+    
+    return matrix;
   };
+
+  const randomizeTarget = (matrix: Matrix, count: number): Target[] => {
+    let randomTargets: Target[] = [];
+
+    for (let i = 0; i < count; i++) {
+      let random = []
+      const randomCountSeq = Math.floor(Math.random() * 6) + 1;
+      for (let j = 0; j < randomCountSeq; j++) {
+
+        const randomRowIndex = Math.floor(
+          Math.random() * Object.keys(matrix).length
+        );
+        const randomColIndex = Math.floor(
+          Math.random() * matrix[randomRowIndex].length
+        );
+        random.push(matrix[randomRowIndex][randomColIndex]);
+
+      }
+      const randomTarget: Target = {
+        sequence: random,
+        points: Math.floor(Math.random() * 100),
+      };
+      randomTargets.push(randomTarget);
+    }
+
+    return randomTargets;
+  };
+
   const handleClick = async () => {
     try {
       const requestBody = {
@@ -211,7 +176,6 @@ export default function Home() {
     }
   };
 
-  const col = getColumnCount(matrix);
   return (
     <main className="flex min-h-screen font-mono flex-col p-24">
       <h1 className="text-4xl text-light-green border-b-2 border-b-green w-fit">
@@ -232,7 +196,33 @@ export default function Home() {
         </div>
         <div className="flex flex-col">
           <>
-            <input type="file" accept=".txt" onChange={handleFileChange} />{" "}
+            <div className="flex gap-6 text-black">
+              <div className="flex flex-col">
+                <p className="text-white text-xl">Masukkan ukuran kolom matrix</p>
+                <input type="number"  value={col} onChange={(e)=>setCol(parseInt(e.target.value))}/>
+              </div>
+              <div className="flex flex-col">
+                <p className="text-white text-xl">Masukkan ukuran baris matrix</p>
+                <input type="number"  value={row} onChange={(e)=>setRow(parseInt(e.target.value))}/>
+
+              </div>
+            </div>
+            <div className="flex gap-4">
+
+              <button
+                className="bg-light-green w-fit text-black font-bold text-xl p-8"
+                onClick={() => { setMatrix(randomizeMatrix(row, col)) }}
+              >
+                Randomize Matrix
+              </button>
+              <button
+                className="bg-light-green w-fit text-black font-bold text-xl p-8"
+                onClick={() => setTargets(randomizeTarget(matrix, 5))}
+              >
+                Randomize Target
+              </button>
+            </div>
+
             <div
               className="w-fit h-fit items-center justify-center mt-4"
               style={{
@@ -260,6 +250,11 @@ export default function Home() {
                   );
                 })
               )}
+            </div>
+            <div className="flex flex-col text-white">
+              {targets.map((target, i) => (
+                <p key={target.points}>{target.points}</p>
+              ))}
             </div>
             <button
               className="bg-light-green w-fit text-black font-bold text-xl p-8"

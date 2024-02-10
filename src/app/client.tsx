@@ -109,32 +109,22 @@ export default function Client() {
   };
   const handleClick = async () => {
     try {
+      const requestBody = {
+        matrix: Object.values(matrix),
+        targets: targets,
+        buffer: buffer,
+        rowCount: 6,
+        colCount: 6,
+      };
+  
       const res = await fetch("http://localhost:3000/api/breach_protocol_solve", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-            "matrix": [
-              ["7A", "55", "E9", "E9", "1C", "55"],
-              ["55", "7A", "1C", "7A", "E9", "55"],
-              ["55", "1C", "1C", "55", "E9", "BD"],
-              ["BD", "1C", "7A", "1C", "55", "BD"],
-              ["BD", "55", "BD", "7A", "1C", "1C"],
-              ["1C", "55", "55", "7A", "55", "7A"]
-            ],
-            "targets": [
-              {"sequence": ["B", "D", "E", "9", "1", "C"], "points": 15},
-              {"sequence": ["B", "D", "7", "A", "B", "D"], "points": 20},
-              {"sequence": ["B", "D", "1", "C", "B", "D", "5", "5"], "points": 30}
-            ],
-            "buffer": 7,
-            "rowCount": 6,
-            "colCount": 6
-          }
-          ),
+        body: JSON.stringify(requestBody),
       });
-
+  
       if (res.ok) {
         const data = await res.json();
         console.log("Result:", data.result);
@@ -145,6 +135,7 @@ export default function Client() {
       console.error("Fetch error:", error);
     }
   };
+  
   return (
     <>
       <input type="file" accept=".txt" onChange={handleFileChange} />{" "}
