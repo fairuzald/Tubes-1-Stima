@@ -89,7 +89,7 @@ class BreachProtocolSolver:
         try:
             start_time = time.time()
 
-            sequences = self.get_sequences_candidate(total_buffer_size, 'x', 1, row_matrix, col_matrix)
+            sequences = self.get_sequences_candidate(total_buffer_size, 'x', 1, col_matrix, row_matrix)
             results = self.evaluate(sequences, matrix, targets)
 
             end_time = time.time()

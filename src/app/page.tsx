@@ -1,107 +1,19 @@
 "use client";
+import { saveAndDownloadSolution } from "@/lib/download";
 import { makeApiRequest } from "@/lib/helper";
+import { getColumnCount, getRowCount } from "@/lib/utils";
+import { Matrix, ParsedFile, Target } from "@/types";
 import Link from "next/link";
 import { ChangeEvent, useState } from "react";
+import toast from "react-hot-toast";
 
-interface Matrix {
-  [key: number]: string[];
-}
-
-type Solution = {
-  result: {
-    seq: Array<Array<number>>;
-    string: string;
-    score: number;
-  };
-  runtime: number;
-};
-
-interface Target {
-  sequence: string[];
-  points: number;
-}
-
-interface ParsedFile {
-  buffer: number;
-  rowCount: number;
-  colCount: number;
-  parsedMatrix: Matrix;
-  parsedTargets: Target[];
-}
-const getRowCount = (matrix: Matrix): number => {
-  return Object.keys(matrix).length;
-};
-
-const getColumnCount = (matrix: Matrix): number => {
-  if (getRowCount(matrix) === 0) {
-    // Handle empty matrix case
-    return 0;
-  }
-
-  // Ambil panjang array pada salah satu baris, karena semua baris dianggap memiliki jumlah kolom yang sama
-  const firstRowKey = parseInt(Object.keys(matrix)[0]);
-  return matrix[firstRowKey].length;
-};
 export default function Home() {
-  const [file, setFile] = useState<File | null>(null);
   const [targets, setTargets] = useState<Target[]>([]);
   const [matrix, setMatrix] = useState<Matrix>({});
   const [buffer, setBuffer] = useState<number>(0);
   const [data, setData] = useState<any>([]);
 
-  // console.log(
-  //   "targets",
-  //   targets,
-  //   "matrix",
-  //   matrix,
-  //   "buffer",
-  //   buffer,
-  //   "data",
-  //   data
-  // );
-  const formatSolution = (data: Solution): string => {
-    const formattedData: string[] = [];
-
-    // Baris 1: Buffer size
-    formattedData.push(`${data.result.score}`);
-
-    // Baris 2: String token
-    let formattedString: string = "";
-
-    for (let i = 0; i < data.result.string.length; i += 2) {
-      const twoChars = data.result.string.slice(i, i + 2);
-      formattedString += twoChars + " ";
-    }
-    formattedString = formattedString.trim();
-    formattedData.push(formattedString);
-
-    // Baris 3 dan seterusnya: Koordinat data seq index
-    data.result.seq.forEach((seq) => {
-      formattedData.push(`${seq}`);
-    });
-
-    // Baris terakhir: Hasil dalam milisekon
-    formattedData.push(
-      `${parseFloat(String(data.runtime * 1000)).toFixed(0)} ms`
-    );
-
-    return formattedData.join("\n");
-  };
-
-  const saveAndDownloadSolution = (): void => {
-    const formattedData = formatSolution(data);
-
-    const blob = new Blob([formattedData], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "solution.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
+  // handle file change upload
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     setData([]);
@@ -118,6 +30,7 @@ export default function Home() {
     }
   };
 
+  // parse file content
   const readFileContent = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -138,12 +51,13 @@ export default function Home() {
   const parseFileContent = (content: string): ParsedFile => {
     const lines = content.split("\n");
     const parsedTargets: Target[] = [];
-    const parsedMatrix: Matrix = {};
+    let parsedMatrix: Matrix = {};
     let matrixRowIndex = 0;
     let rowCount = 0;
     let colCount = 0;
     let buffer = 0;
-    let numberOfTargets = 0; // Declare numberOfTargets here
+    let numberOfTargets = 0;
+    let errorToastShown = false;
 
     // Parse the content line by line
     lines.forEach((line, index) => {
@@ -154,7 +68,7 @@ export default function Home() {
         buffer = parseInt(trimmedLine, 10);
       } else if (index === 1) {
         // Parse row and column count
-        const [rows, cols] = trimmedLine
+        const [cols, rows] = trimmedLine
           .split(" ")
           .map((value) => parseInt(value, 10));
         rowCount = rows;
@@ -162,8 +76,20 @@ export default function Home() {
       } else if (index >= 2 && index < 2 + rowCount) {
         // Parse matrix values
         const values = trimmedLine.split(" ");
-        const matrixRow = values.map((value) => value);
-        parsedMatrix[matrixRowIndex++] = matrixRow;
+
+        // Validate each matrix cell to have exactly 2 characters
+        if (values.some((value) => value.length !== 2) && !errorToastShown) {
+          toast.error("Invalid matrix cell format. Each cell must have exactly 2 characters.");
+          errorToastShown = true;
+          buffer = 0;
+          rowCount = 0;
+          colCount = 0;
+          parsedTargets.length = 0;
+          parsedMatrix = {};
+        } else {
+          const matrixRow = values.map((value) => value);
+          parsedMatrix[matrixRowIndex++] = matrixRow;
+        }
       } else if (index === 2 + rowCount) {
         // Parse the number of targets
         numberOfTargets = parseInt(trimmedLine, 10);
@@ -172,18 +98,26 @@ export default function Home() {
         index <= 2 + rowCount + numberOfTargets * 2
       ) {
         // Parse target values (sequence and points)
-        if (index % 2 === 1) {
+        if (index % 2 === 0 && rowCount % 2 === 1) {
           // Odd index: sequence
           const sequence = trimmedLine.split(" ").join("");
           const pointsIndex = index + 1;
           const points = parseInt(lines[pointsIndex], 10);
           parsedTargets.push({ sequence: sequence.split(""), points });
         }
+        else if (index % 2 === 1 && rowCount % 2 === 0) {
+          const sequence = trimmedLine.split(" ").join("");
+          const pointsIndex = index + 1;
+          const points = parseInt(lines[pointsIndex], 10);
+          parsedTargets.push({ sequence: sequence.split(""), points });
+
+        }
       }
     });
 
     return { buffer, rowCount, colCount, parsedTargets, parsedMatrix };
   };
+
   const handleClick = async () => {
     try {
       const requestBody = {
@@ -211,83 +145,114 @@ export default function Home() {
     }
   };
 
-  const col = getColumnCount(matrix);
   return (
-    <main className="flex min-h-screen font-mono flex-col p-24">
-      <h1 className="text-4xl text-light-green border-b-2 border-b-green w-fit">
-        CyberPunk 2077 Mini Game Solver
+    <main className="flex min-h-screen font-mono flex-col p-24 gap-4">
+      {/* title */}
+      <h1 className="text-5xl text-light-green border-b-2 border-b-green w-fit">
+        CyberPunk 2077 Hacking Mini Game Solver
       </h1>
+      {/* Navigation to other input */}
       <div className="flex flex-col gap-3 text-white">
-        <h2>Pilih Metode Input:</h2>
-        <div className="bg-green text-white p-2 rounded-md flex">
-          <Link href="/manual-input">
+        <h2 className="text-2xl">Pilih Metode Input Lain:</h2>
+        <div className="text-white p-2 rounded-md flex gap-5">
+          <Link className="text-xl bg-green py-3 px-4 rounded-lg" href="/randomize">
             <p>Manual</p>
           </Link>
-          <Link href="/">
+          <Link className="text-xl bg-green py-3 px-4 rounded-lg" href="/">
             <p>File Input</p>
           </Link>
-          <Link href="/input">
-            <p>File Upload</p>
-          </Link>
+         
         </div>
-        <div className="flex flex-col">
-          <>
-            <input type="file" accept=".txt" onChange={handleFileChange} />{" "}
-            <div
-              className="w-fit h-fit items-center justify-center mt-4"
-              style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${getColumnCount(matrix)}, 1fr)`,
-              }}
-            >
-              {Object.values(matrix).map((row, rowIndex) =>
-                row.map((cell: number, colIndex: number) => {
-                  const isMatched = data.result?.seq?.some(
-                    (coord: number[]) =>
-                      coord[0] - 1 === colIndex && coord[1] - 1 === rowIndex
-                  );
+        <div className="flex flex-col gap-3">
+          {/* File Input */}
+          <input type="file" accept=".txt" onChange={handleFileChange} />
+          {/* Matrix Table */}
+          <div className="flex flex-col gap-4">
 
-                  return (
-                    <p
-                      style={{
-                        border: isMatched ? "2px solid red" : "2px solid white",
-                      }}
-                      className="w-14 aspect-square m-auto text-2xl text-center"
-                      key={`cell-${rowIndex}-${colIndex}`}
-                    >
-                      {cell}
-                    </p>
-                  );
-                })
-              )}
+            <div className="flex gap-20">
+              <div
+                className="w-fit h-fit items-center justify-center mt-4"
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${getColumnCount(matrix)}, 1fr)`,
+                }}
+              >
+                {Object.values(matrix).map((row, rowIndex) =>
+                  row.map((cell: number, colIndex: number) => {
+                    const isMatched = data.result?.seq?.some(
+                      (coord: number[]) =>
+                        coord[0] - 1 === colIndex && coord[1] - 1 === rowIndex
+                    );
+
+                    return (
+                      <p
+                        style={{
+                          border: isMatched ? "2px solid red" : "2px solid white",
+                        }}
+                        className="w-14 aspect-square m-auto text-2xl text-center"
+                        key={`cell-${rowIndex}-${colIndex}`}
+                      >
+                        {cell}
+                      </p>
+                    );
+                  })
+                )}
+              </div>
+              <div>
+                {data.result?.seq.length > 0 && (
+
+                  <ol className="flex flex-col text-white mt-4">
+                    <p className="text-green">How the step to get optimal answer?</p>
+                    {data.result?.seq?.map((arr: Array<number>, i: number) => (
+                      <li key={i}>
+                        Step {i + 1}: {i == 0 ? "Start on " : "Move to "}({arr[0]},
+                        {arr[1]})
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                {
+                  Boolean(data.result?.score) &&
+                  <p className="text-green">Points: {data.result?.score}</p>
+                }
+                {
+                  Boolean(data.runtime) &&
+                  <p className="text-green">Runtime: {parseFloat(String(data.runtime * 1000)).toFixed(1)} milliseconds</p>
+                }
+              </div>
             </div>
-            <button
-              className="bg-light-green w-fit text-black font-bold text-xl p-8"
-              onClick={handleClick}
-            >
-              Submit
-            </button>
-            <ol className="flex flex-col text-white">
-              {data.result?.seq?.map((arr: Array<number>, i: number) => (
-                <p key={i}>
-                  Step {i + 1}: {i == 0 ? "Start on " : "Move to "}({arr[0]},
-                  {arr[1]})
+            <div className="flex flex-col">
+              {targets.map((target, index) => (
+                <p key={index} className="text-white">
+                  Target {index + 1}: {target.sequence.join("")} - {target.points}
                 </p>
               ))}
-            </ol>
-            <p>Points: {data.result?.score}</p>
-            <p className="text-green">
-              {parseFloat(String(data.runtime * 1000)).toFixed(1)} milliseconds
-            </p>
-            {/* Render other components based on the parsed data */}
-          </>
+            </div>
+          </div>
+
+          <div className="flex gap-4 items-center">
+            {matrix &&
+              <button
+                className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl disabled:cursor-not-allowed"
+                onClick={handleClick}
+                disabled={Object.keys(matrix).length < 1 || targets.length < 1}
+              >
+                Submit
+              </button>
+            }
+            {Boolean(data.result) && (
+              <button
+                className="w-fit bg-green p-4 text-xl rounded-xl"
+                onClick={() => saveAndDownloadSolution(data)}
+              >
+                Simpan solusi dan Download
+              </button>
+            )}
+          </div>
+
         </div>
-        <button
-          className="w-fit bg-green p-4"
-          onClick={() => saveAndDownloadSolution()}
-        >
-          Simpan solusi dan Download
-        </button>
+
       </div>
     </main>
   );
