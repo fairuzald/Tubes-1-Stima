@@ -1,6 +1,6 @@
 from fastapi import FastAPI,HTTPException
 from api.main import BreachProtocolSolver
-from typing import List, Dict
+from typing import List
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()

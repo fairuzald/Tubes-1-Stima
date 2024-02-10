@@ -46,7 +46,6 @@ class BreachProtocolSolver:
             
             score = 0
             seq_length = 0
-            matched_index = []
 
             for i, target_string in enumerate(target_strings):
                 # Search the start location where same value
@@ -56,7 +55,6 @@ class BreachProtocolSolver:
                     score += targets[i].points
                     end_location = location + len(target_string)
                     seq_length = max(seq_length, end_location)
-                    matched_index.append(i)
 
             if score == full_score:
                 return [{'seq': seqs[string_index],"score":score, "string":ustring}]
@@ -96,16 +94,13 @@ class BreachProtocolSolver:
         for string_index, string_value in enumerate(strings):
             score = 0
             seq_length = 0
-            matched_index = []
 
             for i, ts in enumerate(target_strings):
                 location = string_value.find(ts)
                 if location > -1:
                     score += targets[i].points
-
                     end_location = location + len(ts)
                     seq_length = max(seq_length, end_location)
-                    matched_index.append(i)
             if score == full_score:
                 return [{'seq': seqs[string_index], 'score':score, 'string':string_value}]
             max_score = max(score, max_score)
