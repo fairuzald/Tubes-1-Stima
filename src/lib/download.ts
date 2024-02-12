@@ -5,17 +5,24 @@ const formatSolution = (data: Solution): string => {
   const formattedData: string[] = [];
 
   // Baris 1: Buffer size
-  formattedData.push(`${data.result.score}`);
+  if (Boolean(data.result.seq && data.result.string)) {
+    formattedData.push(`${data.result.score}`);
+  }
 
   // Baris 2: String token
-  let formattedString: string = "";
+  if (Boolean(data.result.seq && data.result.string)) {
+    let formattedString: string = "";
 
-  for (let i = 0; i < data.result.string.length; i += 2) {
-    const twoChars = data.result.string.slice(i, i + 2);
-    formattedString += twoChars + " ";
+    for (let i = 0; i < data.result.string.length; i += 2) {
+      const twoChars = data.result.string.slice(i, i + 2);
+      formattedString += twoChars + " ";
+    }
+    formattedString = formattedString.trim();
+    formattedData.push(formattedString);
   }
-  formattedString = formattedString.trim();
-  formattedData.push(formattedString);
+  else{
+    formattedData.push("No answer sequence to get the prize");
+  }
 
   // Baris 3 dan seterusnya: Koordinat data seq index
   data.result.seq.forEach((seq) => {
@@ -35,9 +42,12 @@ const saveAndDownloadSolution = (data: any): void => {
     toast.error("No result to save and download");
     return;
   }
-  
+
   const formattedData = formatSolution(data);
-  const fileName = prompt('Enter a filename:', data.result.string + " solution" || "solution");
+  const fileName = prompt(
+    "Enter a filename:",
+    data.result.string + " solution" || "solution"
+  );
 
   if (!fileName) {
     // Handle case when the user cancels the prompt
