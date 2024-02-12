@@ -49,26 +49,26 @@ export default function Home() {
     }
   };
   return (
-    <main className="flex min-h-screen font-mono flex-col p-24 gap-4">
+    <main className="flex min-h-screen font-mono flex-col px-8 py-8 md:px-20 lg:py-10 xl:px-32 xl:py-14 2xl:py-20 gap-4">
       {/* title */}
-      <h1 className="text-5xl text-light-green border-b-2 border-b-green w-fit">
+      <h1 className="text-3xl lg:text-4xl 2xl:text-5xl text-light-green border-b-2 border-b-green w-fit">
         CyberPunk 2077 Hacking Mini Game Solver
       </h1>
       {/* Navigation to other input */}
       <div className="flex flex-col gap-3 text-white">
-        <h2 className="text-2xl">Pilih Metode Input Lain:</h2>
+        <h2 className="text-base lg:text-lg xl:text-xl 2xl:text-2xl">Pilih Metode Input Lain:</h2>
         <div className="text-white p-2 rounded-md flex gap-5">
-          <Link className="text-xl bg-green py-3 px-4 rounded-lg" href="/randomize">
+          <Link className="text-base lg:text-xl bg-green py-3 px-4 rounded-lg" href="/randomize">
             <p>Manual</p>
           </Link>
-          <Link className="text-xl bg-green py-3 px-4 rounded-lg" href="/">
+          <Link className="text-base lg:text-xl bg-green py-3 px-4 rounded-lg" href="/">
             <p>File Input</p>
           </Link>
         </div>
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-3">
             <>
-              <div className="flex gap-6 text-black">
+              <div className="flex flex-wrap items-stretch gap-6 text-black">
                 <div className="flex flex-col">
                   <label className="text-white text-lg">Masukkan tinggi matrix</label>
                   <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={row} onChange={(e) => setRow(parseInt(e.target.value))} />
@@ -86,18 +86,18 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-4">
                 <button
-                  className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl"
+                  className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-3 px-4 rounded-xl"
                   onClick={() => { setMatrix(randomizeMatrix(row, col)) }}
                 >
                   Randomize Matrix
                 </button>
                 <div className="flex flex-col gap-2 text-black">
                   <label className="text-white text-lg">Masukkan random target count</label>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={countTarget} onChange={(e) => setCountTarget(parseInt(e.target.value))} />
                     <button
-                      className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl"
-                      onClick={() => setTargets(randomizeTarget(matrix, countTarget,buffer))}
+                      className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-3 px-4 rounded-xl"
+                      onClick={() => setTargets(randomizeTarget(matrix, countTarget, buffer))}
                     >
                       Randomize Target
                     </button>
@@ -111,7 +111,7 @@ export default function Home() {
           {/* Matrix Table */}
           <div className="flex flex-col gap-4">
 
-            <div className="flex gap-20">
+            <div className="flex flex-col lg:flex-row gap-3 lg:gap-14 2xl:gap-20">
               <div
                 className="w-fit h-fit items-center justify-center mt-4"
                 style={{
@@ -131,7 +131,7 @@ export default function Home() {
                         style={{
                           border: isMatched ? "2px solid red" : "2px solid white",
                         }}
-                        className="w-14 aspect-square m-auto text-2xl text-center"
+                        className="w-9  lg:w-10 xl:w-12 2xl:w-14 aspect-square m-auto text-base lg:text-lg xl:text-xl 2xl:text-2xl text-center"
                         key={`cell-${rowIndex}-${colIndex}`}
                       >
                         {cell}
@@ -175,18 +175,20 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex gap-4 items-center">
+
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
             {matrix &&
               <button
-                className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl"
+                className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-3 px-4 rounded-xl disabled:cursor-not-allowed"
                 onClick={handleClick}
+                disabled={Object.keys(matrix).length < 1 || targets.length < 1}
               >
                 Submit
               </button>
             }
             {Boolean(data.result) && (
               <button
-                className="w-fit bg-green p-4 text-xl rounded-xl"
+                className="w-fit bg-green p-4 text-base lg:text-xl rounded-xl"
                 onClick={() => saveAndDownloadSolution(data)}
               >
                 Simpan solusi dan Download

@@ -20,15 +20,16 @@ class BreachProtocolSolver:
                     # Prevent push itself
                     if (x, y) not in sequence:
                         stack.append((buffer - 1, ('y' if axis == 'x' else 'x'), (x if axis == 'x' else y), sequence + ((x, y),)))
+        
         return result
 
     def evaluate(self, seqs, matrix, targets):
         # Initialize object to minimize calculation
         strings = [{'index': i, 'string': ''.join(matrix[y-1][x-1] for x, y in seq)} for i, seq in enumerate(seqs)]
-        
-        # Create set of 
+
+        # Create set of unique strings
         ustrings = set(entry['string'] for entry in strings)
-        
+
         # Create a mapping between unique strings and their original indices
         ustrings_indices = {entry['string']: entry['index'] for entry in strings}
         
@@ -48,10 +49,9 @@ class BreachProtocolSolver:
             score = 0
             seq_length = 0
             for i, target_string in enumerate(target_strings):
-                # Search the start location where the same value
-                location = ustring.find(target_string)
                 # If found
-                if location > 0:
+                location = ustring.find(target_string)
+                if location>0 or ustring == target_string:
                     score += targets[i].points
                     end_location = location + len(target_string)
                     seq_length = max(seq_length, end_location)
@@ -88,14 +88,12 @@ class BreachProtocolSolver:
             if current_seq not in seen_seqs:
                 seen_seqs.add(current_seq)
                 unique_pre_chosen.append(entry)
-                
         return unique_pre_chosen
 
 
     def mini_case_evaluate(self,seqs, matrix, targets):
         strings = [''.join(matrix[y-1][x-1] for x, y in seq) for seq in seqs]
         target_strings = [''.join(target.sequence) for target in targets]
-
         max_score = float("-inf")
         result = []
         full_score = sum(targets[i].points for i in range(len(targets)))
@@ -105,11 +103,10 @@ class BreachProtocolSolver:
             score = 0
             seq_length = 0
             found_local = False
-
+           
             for i, ts in enumerate(target_strings):
                 location = string_value.find(ts)
-                # If found where tokens minimum 2
-                if location > 0:
+                if location>0 or string_value == ts:
                     score += targets[i].points
                     end_location = location + len(ts)
                     seq_length = max(seq_length, end_location)
@@ -121,10 +118,6 @@ class BreachProtocolSolver:
             if score == full_score and full_score>0:
                 return [{'seq': seqs[string_index], 'score':score, 'string':string_value}]
             
-            if(found_local):
-                max_score = max(score, max_score)
-                result.append({'score': score, 'stringIndex': string_index, 'seqLength': seq_length,'score':score, 'string':string_value})
-        
         if(not found):
             return [{'seq':(),'score':-1,"string":""}]
         
