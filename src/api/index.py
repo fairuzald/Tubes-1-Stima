@@ -16,8 +16,6 @@ app.add_middleware(
 def hello_world():
     return {"message": "Hello World"}
 
-
-
 class Target(BaseModel):
     sequence: List[str]
     points: int
