@@ -1,8 +1,8 @@
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 
 interface ApiRequestOptions {
   body?: BodyInit;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method: "GET" | "POST" | "PUT" | "DELETE";
   headers?: HeadersInit;
   loadingMessage: string;
   successMessage: string;
@@ -25,13 +25,13 @@ export async function makeApiRequest({
 }: ApiRequestOptions) {
   try {
     await toast.promise(
-      fetch("http://localhost:8000" + endpoint, {
+      fetch(process.env.NEXT_PUBLIC_API + endpoint, {
         method: method,
         headers: headers,
         timeout: 30000000,
         keepAlive: true,
         noDelay: true,
-        ...(method !== 'GET' ? { body: body } : {}),
+        ...(method !== "GET" ? { body: body } : {}),
       } as ExtendedRequestInit)
         .then(async (response) => {
           if (!response.ok) {
@@ -50,10 +50,10 @@ export async function makeApiRequest({
       {
         loading: loadingMessage,
         success: successMessage,
-        error: (err:any) => `Processing failed: ${err.message}`,
+        error: (err: any) => `Processing failed: ${err.message}`,
       }
     );
   } catch (error) {
-    console.error('Unhandled error:', error);
+    console.error("Unhandled error:", error);
   }
 }
