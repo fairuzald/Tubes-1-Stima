@@ -160,8 +160,8 @@ export default function Home() {
                   <p className="text-green">Points: {data.result?.score}</p>
 
                 }
-                {
-                  Boolean(data) &&
+              {
+                  Boolean(data?.result) &&
                   <p className="text-green">Runtime: {parseFloat(String(data.runtime * 1000)).toFixed(1)} ms</p>
                 }
               </div>
