@@ -24,7 +24,6 @@ export default function Home() {
 
     if (selectedFile) {
       const fileContent = await readFileContent(selectedFile);
-      // console.log("fileContent", fileContent);
       const { buffer, parsedTargets, parsedMatrix } =
         parseFileContent(fileContent);
 
@@ -74,7 +73,7 @@ export default function Home() {
       else if (index === 1) {
         const [cols, rows] = trimmedLine.split(" ").map((value) => parseInt(value, 10));
         if(isNaN(cols) || isNaN(rows) || cols < 2 || rows < 2){
-          toast.error("Invalid matrix width. The number of columns must match the specified width at least 2.");
+          toast.error("Invalid matrix size. The number of columns and rows must match the specified width at least 2.");
           errorToastShown = true;
           resetVariables();
           return;
@@ -88,7 +87,7 @@ export default function Home() {
 
         // Validate row and column count matrix section line
         if (values.length !== colCount && !errorToastShown) {
-          toast.error("Invalid matrix width. The number of columns must match the specified width at least 2.");
+          toast.error("Invalid matrix width.");
           errorToastShown = true;
           resetVariables();
           return;
