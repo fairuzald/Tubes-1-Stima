@@ -19,7 +19,7 @@ export default function Home() {
   const [countTarget, setCountTarget] = useState<number>(0);
 
   const handleClick = async () => {
-    if(col < 1 || row < 1 || buffer < 1 || countTarget < 1) {
+    if (col < 1 || row < 1 || buffer < 1 || countTarget < 1) {
       toast.error("Tinggi, lebar, buffer, dan target count harus lebih dari 0");
       return;
     }
@@ -48,7 +48,6 @@ export default function Home() {
       console.error("Fetch error:", error);
     }
   };
-
   return (
     <main className="flex min-h-screen font-mono flex-col p-24 gap-4">
       {/* title */}
@@ -72,11 +71,11 @@ export default function Home() {
               <div className="flex gap-6 text-black">
                 <div className="flex flex-col">
                   <label className="text-white text-lg">Masukkan tinggi matrix</label>
-                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={col} onChange={(e) => setCol(parseInt(e.target.value))} />
+                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={row} onChange={(e) => setRow(parseInt(e.target.value))} />
                 </div>
                 <div className="flex flex-col">
                   <label className="text-white text-lg">Masukkan lebar matrix</label>
-                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={row} onChange={(e) => setRow(parseInt(e.target.value))} />
+                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={col} onChange={(e) => setCol(parseInt(e.target.value))} />
 
                 </div>
                 <div className="flex flex-col">
@@ -85,22 +84,25 @@ export default function Home() {
 
                 </div>
               </div>
-              <div className="flex gap-4 items-center">
+              <div className="flex flex-col gap-4">
                 <button
                   className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl"
                   onClick={() => { setMatrix(randomizeMatrix(row, col)) }}
                 >
                   Randomize Matrix
                 </button>
-                <div className="flex  gap-2 text-black">
+                <div className="flex flex-col gap-2 text-black">
                   <label className="text-white text-lg">Masukkan random target count</label>
-                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={countTarget} onChange={(e) => setCountTarget(parseInt(e.target.value))} />
-                  <button
-                    className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl"
-                    onClick={() => setTargets(randomizeTarget(matrix, countTarget))}
-                  >
-                    Randomize Target
-                  </button>
+                  <div className="flex gap-3">
+                    <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={countTarget} onChange={(e) => setCountTarget(parseInt(e.target.value))} />
+                    <button
+                      className="bg-light-green w-fit text-black font-bold text-xl py-3 px-4 rounded-xl"
+                      onClick={() => setTargets(randomizeTarget(matrix, countTarget,buffer))}
+                    >
+                      Randomize Target
+                    </button>
+                  </div>
+
                 </div>
               </div>
 
@@ -139,22 +141,24 @@ export default function Home() {
                 )}
               </div>
               <div>
-                {data.result?.seq.length > 0 && (
-
-                  <ol className="flex flex-col text-white mt-4">
-                    <p className="text-green">How the step to get optimal answer?</p>
-                    {data.result?.seq?.map((arr: Array<number>, i: number) => (
-                      <li key={i}>
-                        Step {i + 1}: {i == 0 ? "Start on " : "Move to "}({arr[0]},
-                        {arr[1]})
-                      </li>
-                    ))}
-                  </ol>
+                {Boolean(data.result?.seq.length > 0 && data.result?.string) ? (
+                  <div className=" text-white">
+                    <ol className="flex flex-col mt-4">
+                      <p className="text-green">How the step to get the optimal answer?</p>
+                      {data.result?.seq?.map((arr: number[], i: number) => (
+                        <li key={i}>
+                          Step {i + 1}: {i === 0 ? "Start on " : "Move to "}({arr[0]}, {arr[1]})
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : (
+                  Boolean(data.result?.string == "") && <p>No answer sequence to get the prize</p>
                 )}
-
                 {
-                  Boolean(data.result?.score) &&
+                  Boolean(data.result?.string) &&
                   <p className="text-green">Points: {data.result?.score}</p>
+
                 }
                 {
                   Boolean(data.runtime) &&

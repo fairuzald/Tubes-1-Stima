@@ -20,74 +20,49 @@ def get_sequences_candidate(buffer, axis, current_position, col_matrix, row_matr
 
     return result
 
-def evaluate(self, seqs, matrix, targets):
-        # Initialize object to minimize calculation
-        strings = [{'index': i, 'string': ''.join(matrix[y-1][x-1] for x, y in seq)} for i, seq in enumerate(seqs)]
-        
-        # Create set of 
-        ustrings = set(entry['string'] for entry in strings)
-        
-        # Create a mapping between unique strings and their original indices
-        ustrings_indices = {entry['string']: entry['index'] for entry in strings}
-        
-        # Join the sequence become string
-        target_strings = [''.join(target.sequence) for target in targets]
-        
-        # Initalize max_score, results, and full_score 
-        max_score = float('-inf')
-        result = []
-        full_score = sum(targets[i].points for i in range(len(targets)))
-        found = False
-        
-        # Evaluate only set string 
-        for ustring in ustrings:
-            string_index = ustrings_indices[ustring]
-            score = float('-inf')
-            
-            seq_length = 0
+def evaluate(seqs, matrix, targets):
+    strings = [''.join(matrix[y-1][x-1] for x, y in seq) for seq in seqs]
+    target_strings = [''.join(target['sequence']) for target in targets]
 
-            for i, target_string in enumerate(target_strings):
-                # Search the start location where the same value
-                location = ustring.find(target_string)
-                # If found
-                if location > -1:
-                    score += targets[i].points
-                    end_location = location + len(target_string)
-                    seq_length = max(seq_length, end_location)
-                    found = True
+    max_score = 0
+    result = []
+    full_score = sum(targets[i]['points'] for i in range(len(targets)))
 
-            if score == full_score and full_score > 0:
-                return [{'seq': seqs[string_index], "score": score, "string": ustring}]
 
-            max_score = max(score, max_score)
-            result.append({'score': score, 'stringIndex': string_index, 'seqLength': seq_length, 'score': score, "string": ustring})
-            
-        print(max_score)
+    for string_index, string_value in enumerate(strings):
+        score = 0
+        seq_length = 0
+        matched_index = []
+
+        for i, ts in enumerate(target_strings):
+            location = string_value.find(ts)
+            if location > -1:
+                score += targets[i]['points']
+
+                end_location = location + len(ts)
+                seq_length = max(seq_length, end_location)
+                matched_index.append(i)
+        if score == full_score:
+            return [{'seq': seqs[string_index], 'matchedIndices': matched_index}]
+        max_score = max(score, max_score)
+        result.append({'score': score, 'stringIndex': string_index, 'seqLength': seq_length, 'matchedIndices': matched_index})
         
-        if(found==False):
-            return [{'seq': (), 'score': -1, 'string': ""}]
-        
-        # Evaluate in array the sequence with max score and min sequence length
-        with_max_scores = [entry for entry in result if entry['score'] == max_score]
 
-        min_seq_length = min(entry['seqLength'] for entry in with_max_scores)
-        finals = [entry for entry in with_max_scores if entry['seqLength'] == min_seq_length]
-        
-        # Each 2 char string seq is 1 position
-        min_seq_length = int(min_seq_length / 2)
+    with_max_scores = [entry for entry in result if entry['score'] == max_score]
+    min_seq_length = min(entry['seqLength'] for entry in with_max_scores)
+    finals = [entry for entry in with_max_scores if entry['seqLength'] == min_seq_length]
+    min_seq_length = int(min_seq_length / 2)
 
-        seen_seqs = set()
-        unique_pre_chosen = []
+    seen_seqs = set()
+    unique_pre_chosen = []
 
-        # Minimize unused chars of string become set
-        for entry in ({'seq': seqs[entry['stringIndex']][:min_seq_length], 'score': entry["score"], "string": entry["string"]} for entry in finals):
-            current_seq = tuple(entry['seq'])
-            if current_seq not in seen_seqs:
-                seen_seqs.add(current_seq)
-                unique_pre_chosen.append(entry)
-                
-        return unique_pre_chosen
+    for entry in ({'seq': seqs[entry['stringIndex']][:min_seq_length], 'matchedIndices': entry['matchedIndices']} for entry in finals):
+        current_seq = tuple(entry['seq'])
+        if current_seq not in seen_seqs:
+            seen_seqs.add(current_seq)
+            unique_pre_chosen.append(entry)
 
+    return unique_pre_chosen
 
 def breach_protocol_solve(matrix, targets, total_buffer_size):
     start_time = time.time()
@@ -111,7 +86,8 @@ def breach_protocol_solve(matrix, targets, total_buffer_size):
 
 # Example usage with targets containing sequences and points
 targets = [
-    {'sequence': ['B', 'D', 'E', '9', '1', 'C'], 'points': 15},
+        {'sequence': ['B', 'D', 'E', '9', '1', 'C'], 'points': 15},
+
     {'sequence': ['B', 'D', '7', 'A', 'B', 'D'], 'points': 20},
     {'sequence': ['B', 'D', '1', 'C', 'B', 'D',"5","5"], 'points': 30},
 ]

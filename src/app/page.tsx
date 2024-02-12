@@ -80,7 +80,7 @@ export default function Home() {
         const values = trimmedLine.split(" ");
 
         if (values.length !== colCount && !errorToastShown) {
-          toast.error("Invalid matrix width.");
+          toast.error("Invalid matrix width. The number of columns must match the specified width.");
           errorToastShown = true;
           resetVariables();
           return; // Skip processing further
@@ -88,7 +88,7 @@ export default function Home() {
 
         // Validate each matrix cell (token) to have exactly 2 characters
         if (values.some((value) => value.length !== 2) && !errorToastShown) {
-          toast.error("Invalid matrix cell format. Each cell must have exactly 2 characters.");
+          toast.error("Invalid matrix tokens format. Each tokens must have exactly 2 characters.");
           errorToastShown = true;
           resetVariables();
           return; // Skip processing further
@@ -107,10 +107,14 @@ export default function Home() {
 
         numberOfTargets = parseInt(trimmedLine, 10);
       } else if (index > 2 + rowCount && index <= 2 + rowCount + numberOfTargets * 2) {
-
-
         if (index % 2 === 0 && rowCount % 2 === 1 || (index % 2 === 1 && rowCount % 2 === 0)) { // Parse target values (sequence and points)
           const sequenceArray = trimmedLine.split(" ");
+          if (sequenceArray.length <= 1) {
+            toast.error("Invalid price sequence format. Each sequence must have at least 2 tokens.");
+            resetVariables();
+            return;
+          }
+
           const isValid = validateSequenceFormat(sequenceArray);
 
           if (isValid) {
@@ -142,7 +146,7 @@ export default function Home() {
 
       sequenceArray.forEach((value) => {
         if (value.length !== 2 && !errorToastShown) {
-          toast.error("Invalid target sequence format. Each cell must have exactly 2 characters.");
+          toast.error("Invalid price sequence format. Each tokens must have exactly 2 characters.");
           errorToastShown = true;
           isValid = false;
         }
@@ -180,6 +184,7 @@ export default function Home() {
     }
   };
 
+  console.log(data)
   return (
     <main className="flex min-h-screen font-mono flex-col p-24 gap-4">
       {/* title */}
@@ -234,22 +239,24 @@ export default function Home() {
                 )}
               </div>
               <div>
-                {data.result?.seq.length > 0 && (
-
-                  <ol className="flex flex-col text-white mt-4">
-                    <p className="text-green">How the step to get optimal answer?</p>
-                    {data.result?.seq?.map((arr: Array<number>, i: number) => (
-                      <li key={i}>
-                        Step {i + 1}: {i == 0 ? "Start on " : "Move to "}({arr[0]},
-                        {arr[1]})
-                      </li>
-                    ))}
-                  </ol>
+                {Boolean(data.result?.seq.length > 0 && data.result?.string) ? (
+                  <div className=" text-white">
+                    <ol className="flex flex-col mt-4">
+                      <p className="text-green">How the step to get the optimal answer?</p>
+                      {data.result?.seq?.map((arr: number[], i: number) => (
+                        <li key={i}>
+                          Step {i + 1}: {i === 0 ? "Start on " : "Move to "}({arr[0]}, {arr[1]})
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : (
+                  Boolean(data.result?.string == "") && <p>No answer sequence to get the prize</p>
                 )}
-
                 {
-                  Boolean(data.result?.score) &&
+                  Boolean(data.result?.string) &&
                   <p className="text-green">Points: {data.result?.score}</p>
+
                 }
                 {
                   Boolean(data.runtime) &&

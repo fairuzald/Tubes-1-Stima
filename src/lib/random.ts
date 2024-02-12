@@ -24,9 +24,17 @@ const randomizeMatrix = (rowCount: number, colCount: number): Matrix => {
   return matrix;
 };
 
-const randomizeTarget = (matrix: Matrix, count: number): Target[] => {
+const randomizeTarget = (
+  matrix: Matrix,
+  count: number,
+  buffer: number
+): Target[] => {
   if (count < 1) {
     toast.error("Target count must be more than 0");
+    return [];
+  }
+  if (buffer < 1) {
+    toast.error("Buffer must be more than 0");
     return [];
   }
   if (Object.keys(matrix).length < 1) {
@@ -37,7 +45,12 @@ const randomizeTarget = (matrix: Matrix, count: number): Target[] => {
   let randomTargets: Target[] = [];
   for (let i = 0; i < count; i++) {
     let random = [];
-    const randomCountSeq = Math.floor(Math.random() * 6) + 1;
+    let randomCountSeq = Math.floor(Math.random() * 6) + 1;
+    const minimumValue = 2;
+    if (randomCountSeq < minimumValue) {
+      randomCountSeq = minimumValue;
+    }
+
     for (let j = 0; j < randomCountSeq; j++) {
       const randomRowIndex = Math.floor(
         Math.random() * Object.keys(matrix).length
@@ -46,6 +59,10 @@ const randomizeTarget = (matrix: Matrix, count: number): Target[] => {
         Math.random() * matrix[randomRowIndex].length
       );
       random.push(matrix[randomRowIndex][randomColIndex]);
+    }
+
+    if (random.length > buffer) {
+      random = random.slice(0, buffer);
     }
     const randomTarget: Target = {
       sequence: random,
