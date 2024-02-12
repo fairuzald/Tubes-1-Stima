@@ -19,10 +19,33 @@ export default function Home() {
   const [countTarget, setCountTarget] = useState<number>(0);
 
   const handleClick = async () => {
-    if (col < 1 || row < 1 || buffer < 1 || countTarget < 1) {
-      toast.error("Tinggi, lebar, buffer, dan target count harus lebih dari 0");
+    // Validation
+    if (col < 2) {
+      toast.error("Width matrix must be at least 2");
       return;
     }
+    if (row < 2) {
+      toast.error("Height matrix must be at least 2");
+      return;
+    }
+    if (buffer < 1) {
+      toast.error("Buffer must be more than 0");
+      return;
+    }
+    if (countTarget < 1) {
+      toast.error("Target count must be more than 0");
+      return;
+    }
+    if (Object.keys(matrix).length < 2) {
+      toast.error("The matrix must be initialized first");
+      return;
+    }
+    if (targets.length < 1) {
+      toast.error("The target must be initialized first");
+      return;
+    }
+
+    // API request
     try {
       const requestBody = {
         matrix: Object.values(matrix),
@@ -56,12 +79,12 @@ export default function Home() {
       </h1>
       {/* Navigation to other input */}
       <div className="flex flex-col gap-3 text-white">
-        <h2 className="text-base lg:text-lg xl:text-xl 2xl:text-2xl">Pilih Metode Input Lain:</h2>
+        <h2 className="text-base lg:text-lg xl:text-xl 2xl:text-2xl">Select Other Input Methods:</h2>
         <div className="text-white p-2 rounded-md flex gap-5">
-          <Link className="text-base lg:text-xl bg-green py-3 px-4 rounded-lg" href="/randomize">
-            <p>Manual</p>
+          <Link className="text-base lg:text-xl bg-green py-2 px-3 lg:py-3 lg:px-4 rounded-lg" href="/randomize">
+            <p>Randomize</p>
           </Link>
-          <Link className="text-base lg:text-xl bg-green py-3 px-4 rounded-lg" href="/">
+          <Link className="text-base lg:text-xl bg-green py-2 px-3 lg:py-3 lg:px-4 rounded-lg" href="/">
             <p>File Input</p>
           </Link>
         </div>
@@ -69,34 +92,37 @@ export default function Home() {
           <div className="flex flex-col gap-3">
             <>
               <div className="flex flex-wrap items-stretch gap-6 text-black">
+                {/* Height */}
                 <div className="flex flex-col">
-                  <label className="text-white text-lg">Masukkan tinggi matrix</label>
-                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={row} onChange={(e) => setRow(parseInt(e.target.value))} />
+                  <label htmlFor="height" className="text-white text-lg">Insert height matrix</label>
+                  <input id="height" className="bg-white py-2 px-3 lg:py-3 lg:px-4 outline-none rounded-lg" type="number" value={row} onChange={(e) => setRow(parseInt(e.target.value))} />
                 </div>
+                {/* Width */}
                 <div className="flex flex-col">
-                  <label className="text-white text-lg">Masukkan lebar matrix</label>
-                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={col} onChange={(e) => setCol(parseInt(e.target.value))} />
-
+                  <label htmlFor="width" className="text-white text-lg">Insert width matrix</label>
+                  <input id="width" className="bg-white py-2 px-3 lg:py-3 lg:px-4 outline-none rounded-lg" type="number" value={col} onChange={(e) => setCol(parseInt(e.target.value))} />
                 </div>
+                {/* Buffer */}
                 <div className="flex flex-col">
-                  <label className="text-white text-lg">Masukkan ukuran buffer</label>
-                  <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={buffer} onChange={(e) => setBuffer(parseInt(e.target.value))} />
-
+                  <label htmlFor="buffer" className="text-white text-lg">Insert buffer size</label>
+                  <input id="buffer" className="bg-white py-2 px-3 lg:py-3 lg:px-4 outline-none rounded-lg" type="number" value={buffer} onChange={(e) => setBuffer(parseInt(e.target.value))} />
                 </div>
               </div>
               <div className="flex flex-col gap-4">
+                {/* Generate Random matrix */}
                 <button
-                  className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-3 px-4 rounded-xl"
+                  className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-2 px-3 lg:py-3 lg:px-4 rounded-xl"
                   onClick={() => { setMatrix(randomizeMatrix(row, col)) }}
                 >
                   Randomize Matrix
                 </button>
                 <div className="flex flex-col gap-2 text-black">
-                  <label className="text-white text-lg">Masukkan random target count</label>
+                  <label htmlFor="target" className="text-white text-lg">Insert target reward count</label>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <input className="bg-white py-3 px-4 outline-none rounded-lg" type="number" value={countTarget} onChange={(e) => setCountTarget(parseInt(e.target.value))} />
+                    <input id="target" className="bg-white py-2 px-3 lg:py-3 lg:px-4 outline-none rounded-lg" type="number" value={countTarget} onChange={(e) => setCountTarget(parseInt(e.target.value))} />
+                    {/* Generate Random Targets */}
                     <button
-                      className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-3 px-4 rounded-xl"
+                      className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-2 px-3 lg:py-3 lg:px-4 rounded-xl"
                       onClick={() => setTargets(randomizeTarget(matrix, countTarget, buffer))}
                     >
                       Randomize Target
@@ -110,7 +136,6 @@ export default function Home() {
           </div>
           {/* Matrix Table */}
           <div className="flex flex-col gap-4">
-
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-14 2xl:gap-20">
               <div
                 className="w-fit h-fit items-center justify-center mt-4"
@@ -141,6 +166,7 @@ export default function Home() {
                 )}
               </div>
               <div>
+                {/* Enumerate step */}
                 {Boolean(data.result?.seq?.length > 0 && data.result?.string) ? (
                   <div className=" text-white">
                     <ol className="flex flex-col mt-4">
@@ -155,32 +181,35 @@ export default function Home() {
                 ) : (
                   Boolean(data.result?.string == "") && <p>No answer sequence to get the prize</p>
                 )}
+                {/* Points */}
                 {
                   Boolean(data.result?.string) &&
                   <p className="text-green">Points: {data.result?.score}</p>
 
                 }
-              {
+                {/* Runtime */}
+                {
                   Boolean(data?.result) &&
                   <p className="text-green">Runtime: {parseFloat(String(data.runtime * 1000)).toFixed(1)} ms</p>
                 }
               </div>
             </div>
             <div className="flex flex-col">
+              {/* Buffer */}
+              {buffer > 0 && <p className="text-green">Buffer Size: {buffer}</p>}
+              {/* Target */}
               {targets.map((target, index) => (
                 <p key={index} className="text-white">
-                  Target {index + 1}: {target.sequence.join("")} - {target.points}
+                  Target {index + 1}: {target.sequence.join("").match(/.{1,2}/g)?.join(" ")} - {target.points} {target.points > 1 || target.points < 1 ? "points" : "point"}
                 </p>
               ))}
             </div>
           </div>
-
-
-
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
+          {/* Button */}
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
             {matrix &&
               <button
-                className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-3 px-4 rounded-xl disabled:cursor-not-allowed"
+                className="bg-light-green w-fit text-black font-bold text-base lg:text-xl py-2 px-3 lg:py-3 lg:px-4 rounded-xl disabled:cursor-not-allowed"
                 onClick={handleClick}
                 disabled={Object.keys(matrix).length < 1 || targets.length < 1}
               >
@@ -189,16 +218,14 @@ export default function Home() {
             }
             {Boolean(data.result) && (
               <button
-                className="w-fit bg-green p-4 text-base lg:text-xl rounded-xl"
+                className="w-fit bg-green py-2 px-3 lg:py-3 lg:px-4 text-base lg:text-xl rounded-xl"
                 onClick={() => saveAndDownloadSolution(data)}
               >
                 Simpan solusi dan Download
               </button>
             )}
           </div>
-
         </div>
-
       </div>
     </main>
   );

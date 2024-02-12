@@ -18,8 +18,6 @@ interface Target {
 
 interface ParsedFile {
   buffer: number;
-  rowCount: number;
-  colCount: number;
   parsedMatrix: Matrix;
   parsedTargets: Target[];
 }
