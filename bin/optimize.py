@@ -149,8 +149,7 @@ def breach_protocol_solve(matrix, targets, total_buffer_size, row_matrix, col_ma
 
 # Example usage with targets containing sequences and points
 targets = [
-        {'sequence': ['B', 'D', 'E', '9', '1', 'C'], 'points': 15},
-
+    {'sequence': ['B', 'D', 'E', '9', '1', 'C'], 'points': 15},
     {'sequence': ['B', 'D', '7', 'A', 'B', 'D'], 'points': 20},
     {'sequence': ['B', 'D', '1', 'C', 'B', 'D',"5","5"], 'points': 30},
 ]
