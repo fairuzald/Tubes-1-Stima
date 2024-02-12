@@ -44,7 +44,6 @@ class BreachProtocolSolver:
         
         # Evaluate only set string 
         for ustring in ustrings:
-            found_local = False
             string_index = ustrings_indices[ustring]
             score = 0
             seq_length = 0
@@ -57,38 +56,34 @@ class BreachProtocolSolver:
                     seq_length = max(seq_length, end_location)
                     if(not found):
                         found=True
-                    if(not found_local):
-                        found_local = True
+                    max_score = max(score, max_score)
+                    result.append({'stringIndex': string_index, 'seqLength': seq_length,'score':score, 'string':ustring})
 
             if score == full_score and full_score>0:
                 return [{'seq': seqs[string_index], 'score':score, 'string':ustring}]
             
-            if(found_local):
-                max_score = max(score, max_score)
-                result.append({'score': score, 'stringIndex': string_index, 'seqLength': seq_length,'score':score, 'string':ustring})
-        
         if(not found):
             return [{'seq':(),'score':-1,"string":""}]
         
         # Evaluate in array the sequence with max score and min sequence length
         with_max_scores = [entry for entry in result if entry['score'] == max_score]
-
         min_seq_length = min(entry['seqLength'] for entry in with_max_scores)
         finals = [entry for entry in with_max_scores if entry['seqLength'] == min_seq_length]
         
-        # Each 2 char string seq is 1 position
-        min_seq_length = int(min_seq_length / 2)
+        if(min_seq_length>1):
+            min_seq_length = int(min_seq_length / 2)
 
-        seen_seqs = set()
-        unique_pre_chosen = []
+            seen_seqs = set()
+            unique_pre_chosen = []
 
-        # Minimize unused chars of string become set
-        for entry in ({'seq': seqs[entry['stringIndex']][:min_seq_length], 'score': entry["score"], "string": entry["string"]} for entry in finals):
-            current_seq = tuple(entry['seq'])
-            if current_seq not in seen_seqs:
-                seen_seqs.add(current_seq)
-                unique_pre_chosen.append(entry)
-        return unique_pre_chosen
+            for entry in ({'seq': seqs[entry['stringIndex']][:min_seq_length],'score':entry["score"],"string":entry["string"]} for entry in finals):
+                current_seq = tuple(entry['seq'])
+                if current_seq not in seen_seqs:
+                    seen_seqs.add(current_seq)
+                    unique_pre_chosen.append(entry)
+
+            return unique_pre_chosen
+        return finals
 
 
     def mini_case_evaluate(self,seqs, matrix, targets):
@@ -102,7 +97,6 @@ class BreachProtocolSolver:
         for string_index, string_value in enumerate(strings):
             score = 0
             seq_length = 0
-            found_local = False
            
             for i, ts in enumerate(target_strings):
                 location = string_value.find(ts)
@@ -112,30 +106,34 @@ class BreachProtocolSolver:
                     seq_length = max(seq_length, end_location)
                     if(not found):
                         found=True
-                    if(not found_local):
-                        found_local = True
+                    max_score = max(score, max_score)
+                    result.append({'score': score, 'stringIndex': string_index, 'seqLength': seq_length,'score':score, 'string':string_value})
                     
             if score == full_score and full_score>0:
                 return [{'seq': seqs[string_index], 'score':score, 'string':string_value}]
             
+                
+        
         if(not found):
             return [{'seq':(),'score':-1,"string":""}]
         
         with_max_scores = [entry for entry in result if entry['score'] == max_score]
         min_seq_length = min(entry['seqLength'] for entry in with_max_scores)
         finals = [entry for entry in with_max_scores if entry['seqLength'] == min_seq_length]
-        min_seq_length = int(min_seq_length / 2)
+        if(min_seq_length>1):
+            min_seq_length = int(min_seq_length / 2)
 
-        seen_seqs = set()
-        unique_pre_chosen = []
+            seen_seqs = set()
+            unique_pre_chosen = []
 
-        for entry in ({'seq': seqs[entry['stringIndex']][:min_seq_length],'score':entry["score"],"string":entry["string"]} for entry in finals):
-            current_seq = tuple(entry['seq'])
-            if current_seq not in seen_seqs:
-                seen_seqs.add(current_seq)
-                unique_pre_chosen.append(entry)
+            for entry in ({'seq': seqs[entry['stringIndex']][:min_seq_length],'score':entry["score"],"string":entry["string"]} for entry in finals):
+                current_seq = tuple(entry['seq'])
+                if current_seq not in seen_seqs:
+                    seen_seqs.add(current_seq)
+                    unique_pre_chosen.append(entry)
 
-        return unique_pre_chosen
+            return unique_pre_chosen
+        return finals
 
     def breach_protocol_solve(self, matrix, targets, total_buffer_size, row_matrix, col_matrix):
         try:

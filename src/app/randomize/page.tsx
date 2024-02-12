@@ -141,11 +141,11 @@ export default function Home() {
                 )}
               </div>
               <div>
-                {Boolean(data.result?.seq.length > 0 && data.result?.string) ? (
+                {Boolean(data.result?.seq?.length > 0 && data.result?.string) ? (
                   <div className=" text-white">
                     <ol className="flex flex-col mt-4">
                       <p className="text-green">How the step to get the optimal answer?</p>
-                      {data.result?.seq?.map((arr: number[], i: number) => (
+                      {data.result?.seq.map((arr: number[], i: number) => (
                         <li key={i}>
                           Step {i + 1}: {i === 0 ? "Start on " : "Move to "}({arr[0]}, {arr[1]})
                         </li>
@@ -161,8 +161,8 @@ export default function Home() {
 
                 }
                 {
-                  Boolean(data.runtime) &&
-                  <p className="text-green">Runtime: {parseFloat(String(data.runtime * 1000)).toFixed(1)} milliseconds</p>
+                  Boolean(data) &&
+                  <p className="text-green">Runtime: {parseFloat(String(data.runtime * 1000)).toFixed(1)} ms</p>
                 }
               </div>
             </div>
@@ -174,6 +174,7 @@ export default function Home() {
               ))}
             </div>
           </div>
+
 
 
           <div className="flex flex-col sm:flex-row gap-4 items-center">
