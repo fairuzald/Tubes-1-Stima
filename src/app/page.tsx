@@ -72,7 +72,7 @@ export default function Home() {
       // Parse row and column count 2nd line
       else if (index === 1) {
         const [cols, rows] = trimmedLine.split(" ").map((value) => parseInt(value, 10));
-        if(isNaN(cols) || isNaN(rows) || cols < 2 || rows < 2){
+        if (isNaN(cols) || isNaN(rows) || cols < 2 || rows < 2) {
           toast.error("Invalid matrix size. The number of columns and rows must match the specified width at least 2.");
           errorToastShown = true;
           resetVariables();
@@ -157,7 +157,7 @@ export default function Home() {
 
       sequenceArray.forEach((value) => {
         if (value.length !== 2 && !errorToastShown) {
-          toast.error("Invalid price sequence format. Each tokens must have exactly 2 characters.");
+          toast.error("Invalid target sequence format. Each tokens must have exactly 2 characters.");
           errorToastShown = true;
           isValid = false;
         }
@@ -316,7 +316,7 @@ export default function Home() {
                 className="w-fit bg-green py-2 px-3 lg:py-3 lg:px-4 text-base lg:text-xl rounded-xl"
                 onClick={() => saveAndDownloadSolution(data)}
               >
-                Simpan solusi dan Download
+                Save and Download Solution
               </button>
             )}
           </div>

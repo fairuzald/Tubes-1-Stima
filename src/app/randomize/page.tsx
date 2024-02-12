@@ -221,7 +221,7 @@ export default function Home() {
                 className="w-fit bg-green py-2 px-3 lg:py-3 lg:px-4 text-base lg:text-xl rounded-xl"
                 onClick={() => saveAndDownloadSolution(data)}
               >
-                Simpan solusi dan Download
+                Save and Download Solution
               </button>
             )}
           </div>
